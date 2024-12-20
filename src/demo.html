@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+    </style>
+    <script src="../dist/main.js"></script>
+  </head>
+
+  <body>
+    <div id="container" style="position: relative; width: 100%; height: 500px; background-color: lightgray"></div>
+  </body>
+  <script type="module">
+    import ihm_SelectionBox from "./components/selectionBox.js";
+    // 示例：在页面上初始化框选功能
+    const container = document.getElementById("container");
+    const selectionBox = new ihm_SelectionBox(container);
+    console.log(selectionBox);
+    // 禁用框选
+    selectionBox.enable();
+
+    // 监听自定义事件
+    container.addEventListener("selectionComplete", (event) => {
+      const selectionData = event.detail;
+      console.log("外部获取的框选数据：", selectionData);
+    });
+  </script>
+</html>

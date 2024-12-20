@@ -1,0 +1,30 @@
+{
+  "name": "ihm_selectionbox",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./dist/esm.js",
+  "scripts": {
+    "dev": "webpack-dev-server",
+    "build": "webpack"
+  },
+  "keywords": [
+    "watermark",
+    "canvas",
+    "dom",
+    "library"
+  ],
+  "author": "InhamiRei",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/InhamiRei/ihm-SelectionBox"
+  },
+  "devDependencies": {
+    "css-loader": "5.2.6",
+    "style-loader": "2.0.0",
+    "url-loader": "^4.1.1",
+    "webpack": "^4.46.0",
+    "webpack-cli": "^3.3.12",
+    "webpack-dev-server": "^3.11.2"
+  }
+}

@@ -55,12 +55,26 @@ export default class ihm_SelectionBox {
   // 鼠标移动事件：更新框选框大小和位置
   onMouseMove(event) {
     if (!this.enabled) return;
-    const containerRect = this.container.getBoundingClientRect();
-    const width = event.clientX - containerRect.left - this.startX;
-    const height = event.clientY - containerRect.top - this.startY;
 
+    const containerRect = this.container.getBoundingClientRect();
+
+    // 获取鼠标相对于容器的坐标
+    let currentX = event.clientX - containerRect.left;
+    let currentY = event.clientY - containerRect.top;
+
+    // 限制鼠标坐标不能超出容器边界
+    currentX = Math.max(0, Math.min(currentX, containerRect.width));
+    currentY = Math.max(0, Math.min(currentY, containerRect.height));
+
+    // 计算框选框的宽度和高度
+    const width = currentX - this.startX;
+    const height = currentY - this.startY;
+
+    // 设置框选框的样式
     this.selectionBox.style.width = Math.abs(width) + "px";
     this.selectionBox.style.height = Math.abs(height) + "px";
+
+    // 调整框选框的位置，确保左上角和右下角正确
     this.selectionBox.style.left = width > 0 ? `${this.startX}px` : `${this.startX + width}px`;
     this.selectionBox.style.top = height > 0 ? `${this.startY}px` : `${this.startY + height}px`;
   }

@@ -11,8 +11,25 @@ export default class ihm_SelectionBox {
     this.init();
   }
 
-  // 初始化事件监听
+  // 初始化时创建透明画布，并在画布上进行框选
   init() {
+    // 创建透明画布，并添加到容器中
+    this.canvas = document.createElement("div");
+    this.canvas.style.position = "absolute";
+    this.canvas.style.top = "0";
+    this.canvas.style.left = "0";
+    this.canvas.style.width = "100%";
+    this.canvas.style.height = "100%";
+    this.container.appendChild(this.canvas);
+
+    // 设置框选框元素，仅创建一次
+    this.selectionBox = document.createElement("div");
+    this.selectionBox.style.position = "absolute";
+    this.selectionBox.style.border = "2px dashed red";
+    this.selectionBox.style.backgroundColor = "rgba(255, 0, 0, 0.2)";
+    this.selectionBox.style.zIndex = "9999"; // 确保框选框在所有其他元素之上
+
+    // 事件绑定
     this.container.addEventListener("mousedown", this.onMouseDown);
   }
 
@@ -27,25 +44,15 @@ export default class ihm_SelectionBox {
   onMouseDown(event) {
     if (!this.enabled) return;
 
+    // 获取鼠标相对于容器的起始坐标
     const containerRect = this.container.getBoundingClientRect();
     this.startX = event.clientX - containerRect.left;
     this.startY = event.clientY - containerRect.top;
 
-    // 创建框选框
-    this.selectionBox = document.createElement("div");
-
-    // 设置框选框样式
-    this.selectionBox.style.position = "absolute";
-    this.selectionBox.style.border = "2px dashed red";
-    this.selectionBox.style.backgroundColor = "rgba(255, 0, 0, 0.2)";
-    this.selectionBox.style.pointerEvents = "none"; // 确保框选框不阻挡事件
-    this.selectionBox.style.left = `${this.startX}px`;
-    this.selectionBox.style.top = `${this.startY}px`;
+    // 确保框选框在画布上，并设置其初始大小为0
     this.selectionBox.style.width = "0";
     this.selectionBox.style.height = "0";
-    this.selectionBox.style.zIndex = "9999";
-
-    this.container.appendChild(this.selectionBox);
+    this.canvas.appendChild(this.selectionBox); // 只需添加一次
 
     // 监听全局鼠标移动和松开事件
     document.addEventListener("mousemove", this.onMouseMove);
@@ -70,11 +77,9 @@ export default class ihm_SelectionBox {
     const width = currentX - this.startX;
     const height = currentY - this.startY;
 
-    // 设置框选框的样式
+    // 更新框选框的样式：宽度、高度和位置
     this.selectionBox.style.width = Math.abs(width) + "px";
     this.selectionBox.style.height = Math.abs(height) + "px";
-
-    // 调整框选框的位置，确保左上角和右下角正确
     this.selectionBox.style.left = width > 0 ? `${this.startX}px` : `${this.startX + width}px`;
     this.selectionBox.style.top = height > 0 ? `${this.startY}px` : `${this.startY + height}px`;
   }
@@ -82,58 +87,58 @@ export default class ihm_SelectionBox {
   // 鼠标松开事件：完成框选并获取框选区域的坐标信息
   onMouseUp(event) {
     if (!this.enabled) return;
-    if (this.selectionBox && this.container.contains(this.selectionBox)) {
-      const rect = this.selectionBox.getBoundingClientRect();
-      const containerRect = this.container.getBoundingClientRect(); // 获取容器的 rect
 
-      // 计算相对于容器的坐标
-      const relativeLeft = rect.left - containerRect.left;
-      const relativeTop = rect.top - containerRect.top;
-      const relativeMouseUpX = event.clientX - containerRect.left; // 获取鼠标松开时的相对X坐标
-      const relativeMouseUpY = event.clientY - containerRect.top; // 获取鼠标松开时的相对Y坐标
+    // 获取框选框的尺寸与位置
+    const rect = this.selectionBox.getBoundingClientRect();
+    const containerRect = this.container.getBoundingClientRect(); // 获取容器的 rect
 
-      const width = rect.width;
-      const height = rect.height;
-      const centerX = relativeLeft + width / 2;
-      const centerY = relativeTop + height / 2;
+    // 计算相对于容器的坐标
+    const relativeLeft = rect.left - containerRect.left;
+    const relativeTop = rect.top - containerRect.top;
+    const relativeMouseUpX = event.clientX - containerRect.left; // 获取鼠标松开时的相对X坐标
+    const relativeMouseUpY = event.clientY - containerRect.top; // 获取鼠标松开时的相对Y坐标
 
-      // 计算四个角的坐标 (也需要转换为相对坐标)
-      const topLeft = { x: relativeLeft, y: relativeTop };
-      const topRight = { x: relativeLeft + width, y: relativeTop };
-      const bottomLeft = { x: relativeLeft, y: relativeTop + height };
-      const bottomRight = { x: relativeLeft + width, y: relativeTop + height };
+    const width = rect.width;
+    const height = rect.height;
+    const centerX = relativeLeft + width / 2;
+    const centerY = relativeTop + height / 2;
 
-      // 判断框选方向
-      const directionX = this.startX < relativeMouseUpX ? "leftToRight" : "rightToLeft";
-      const directionY = this.startY < relativeMouseUpY ? "topToBottom" : "bottomToTop";
+    // 计算四个角的坐标 (也需要转换为相对坐标)
+    const topLeft = { x: relativeLeft, y: relativeTop };
+    const topRight = { x: relativeLeft + width, y: relativeTop };
+    const bottomLeft = { x: relativeLeft, y: relativeTop + height };
+    const bottomRight = { x: relativeLeft + width, y: relativeTop + height };
 
-      // 创建自定义事件
-      const selectionEvent = new CustomEvent("selectionComplete", {
-        detail: {
-          top: relativeTop,
-          left: relativeLeft,
-          width,
-          height,
-          centerX,
-          centerY,
-          topLeft,
-          topRight,
-          bottomLeft,
-          bottomRight,
-          directionX,
-          directionY,
-        },
-      });
+    // 判断框选方向
+    const directionX = this.startX < relativeMouseUpX ? "leftToRight" : "rightToLeft";
+    const directionY = this.startY < relativeMouseUpY ? "topToBottom" : "bottomToTop";
 
-      // 在容器上触发事件
-      this.container.dispatchEvent(selectionEvent);
+    // 创建自定义事件
+    const selectionEvent = new CustomEvent("selectionComplete", {
+      detail: {
+        top: relativeTop,
+        left: relativeLeft,
+        width,
+        height,
+        centerX,
+        centerY,
+        topLeft,
+        topRight,
+        bottomLeft,
+        bottomRight,
+        directionX,
+        directionY,
+      },
+    });
 
-      // 移除框选框
-      this.container.removeChild(this.selectionBox);
+    // 在容器上触发事件
+    this.container.dispatchEvent(selectionEvent);
 
-      // 清理事件监听器
-      document.removeEventListener("mousemove", this.onMouseMove);
-      document.removeEventListener("mouseup", this.onMouseUp);
-    }
+    // 清理框选框，并移除框选框
+    this.canvas.removeChild(this.selectionBox);
+
+    // 清理事件监听器
+    document.removeEventListener("mousemove", this.onMouseMove);
+    document.removeEventListener("mouseup", this.onMouseUp);
   }
 }

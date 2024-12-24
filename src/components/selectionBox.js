@@ -4,16 +4,17 @@ export default class ihm_SelectionBox {
     this.selectionBox = null;
     this.startX = 0;
     this.startY = 0;
-    this.enabled = false; // 默认启用框选
+    this.enabled = false;
     this.onMouseDown = this.onMouseDown.bind(this);
     this.onMouseMove = this.onMouseMove.bind(this);
     this.onMouseUp = this.onMouseUp.bind(this);
-    this.init();
   }
 
-  // 初始化时创建透明画布，并在画布上进行框选
-  init() {
-    // 创建透明画布，并添加到容器中
+  enable() {
+    if (this.enabled) return;
+    this.enabled = true;
+
+    // 创建画布和框选框
     this.canvas = document.createElement("div");
     this.canvas.style.position = "absolute";
     this.canvas.style.top = "0";
@@ -22,27 +23,33 @@ export default class ihm_SelectionBox {
     this.canvas.style.height = "100%";
     this.container.appendChild(this.canvas);
 
-    // 设置框选框元素，仅创建一次
     this.selectionBox = document.createElement("div");
     this.selectionBox.style.position = "absolute";
     this.selectionBox.style.border = "2px dashed red";
     this.selectionBox.style.backgroundColor = "rgba(255, 0, 0, 0.2)";
-    this.selectionBox.style.zIndex = "9999"; // 确保框选框在所有其他元素之上
+    this.selectionBox.style.zIndex = "9999";
 
-    // 事件绑定
+    // 绑定事件
     this.container.addEventListener("mousedown", this.onMouseDown);
   }
 
-  enable() {
-    this.enabled = true;
-  }
-
   disable() {
+    if (!this.enabled) return;
     this.enabled = false;
+
+    // 移除画布和框选框
+    if (this.canvas) {
+      this.container.removeChild(this.canvas);
+      this.canvas = null;
+    }
+    this.selectionBox = null;
+
+    // 解除事件绑定
+    this.container.removeEventListener("mousedown", this.onMouseDown);
   }
 
   onMouseDown(event) {
-    if (!this.enabled) return;
+    if (!this.enabled || !this.canvas || !this.selectionBox) return;
 
     // 获取鼠标相对于容器的起始坐标
     const containerRect = this.container.getBoundingClientRect();
@@ -52,7 +59,7 @@ export default class ihm_SelectionBox {
     // 确保框选框在画布上，并设置其初始大小为0
     this.selectionBox.style.width = "0";
     this.selectionBox.style.height = "0";
-    this.canvas.appendChild(this.selectionBox); // 只需添加一次
+    this.canvas.appendChild(this.selectionBox);
 
     // 监听全局鼠标移动和松开事件
     document.addEventListener("mousemove", this.onMouseMove);
@@ -61,7 +68,7 @@ export default class ihm_SelectionBox {
 
   // 鼠标移动事件：更新框选框大小和位置
   onMouseMove(event) {
-    if (!this.enabled) return;
+    if (!this.enabled || !this.selectionBox) return;
 
     const containerRect = this.container.getBoundingClientRect();
 
@@ -86,11 +93,11 @@ export default class ihm_SelectionBox {
 
   // 鼠标松开事件：完成框选并获取框选区域的坐标信息
   onMouseUp(event) {
-    if (!this.enabled) return;
+    if (!this.enabled || !this.selectionBox) return;
 
     // 获取框选框的尺寸与位置
     const rect = this.selectionBox.getBoundingClientRect();
-    const containerRect = this.container.getBoundingClientRect(); // 获取容器的 rect
+    const containerRect = this.container.getBoundingClientRect();
 
     // 计算相对于容器的坐标
     const relativeLeft = rect.left - containerRect.left;
